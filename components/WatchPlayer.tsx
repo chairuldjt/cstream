@@ -11,6 +11,7 @@ interface WatchPlayerProps {
     currentIndex: number;
     totalEpisodes: number;
     autoPlayEnabled?: boolean;
+    onNextEpisode?: () => void;
 }
 
 export default function WatchPlayer({
@@ -19,20 +20,25 @@ export default function WatchPlayer({
     bookId,
     currentIndex,
     totalEpisodes,
-    autoPlayEnabled = true
+    autoPlayEnabled = true,
+    onNextEpisode
 }: WatchPlayerProps) {
     const router = useRouter();
     const [autoPlay, setAutoPlay] = useState(autoPlayEnabled);
 
     const hasNextEpisode = currentIndex < totalEpisodes - 1;
-    const nextEpisodeIndex = currentIndex + 1;
 
     const handleVideoEnded = useCallback(() => {
         if (!autoPlay || !hasNextEpisode) return;
 
-        // Navigate immediately to next episode
-        router.push(`/watch/${bookId}/${nextEpisodeIndex}`);
-    }, [autoPlay, hasNextEpisode, router, bookId, nextEpisodeIndex]);
+        if (onNextEpisode) {
+            onNextEpisode();
+        } else {
+            // Fallback for direct usage
+            const nextEpisodeIndex = currentIndex + 1;
+            router.push(`/watch/${bookId}/${nextEpisodeIndex}`);
+        }
+    }, [autoPlay, hasNextEpisode, onNextEpisode, currentIndex, router, bookId]);
 
     return (
         <div className="relative">
@@ -43,8 +49,8 @@ export default function WatchPlayer({
                 <button
                     onClick={() => setAutoPlay(!autoPlay)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all backdrop-blur-md border ${autoPlay
-                            ? 'bg-violet-600/80 border-violet-500 text-white'
-                            : 'bg-slate-800/80 border-slate-600 text-slate-300'
+                        ? 'bg-violet-600/80 border-violet-500 text-white'
+                        : 'bg-slate-800/80 border-slate-600 text-slate-300'
                         }`}
                 >
                     <span className={`w-2 h-2 rounded-full ${autoPlay ? 'bg-green-400' : 'bg-slate-500'}`} />
